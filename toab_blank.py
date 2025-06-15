@@ -61,13 +61,10 @@ class Toab:
                 patch.remove()
         if state is None:
             # Set biggest ring, set state to all rings on the start pole
-            self.biggest_ring = biggest_ring
-            rings = list(range(biggest_ring, 0, -1))
-            self.state = {'A': [], 'B': [], 'C': [], start_pole: rings}
+            pass
         else:
             # Set biggest ring, set state
-            self.biggest_ring = max(v for ring in state.values() for v in ring)
-            self.state = state
+            pass
         self.pole_centres = self.draw_poles()
         self.ring_patches = self.draw_rings()
         self.interval = INTERVAL / self.biggest_ring
@@ -180,21 +177,16 @@ class Toab:
     # returns 0 for no move or 1 for single move
     def move_ring(self, ring, from_pole, to_pole, animate_now=True):
         # no move if same pole or ring is 0
-        if from_pole == to_pole or ring == 0:
-            return 0
+        pass
 
         # checks: anything on pole? Is the ring on top? Is to_pole empty / has bigger ring?
-        assert self.state[from_pole], f'Nothing on pole {from_pole}!'
-        assert self.state[from_pole][-1] == ring, f'Ring {ring} is not the top ring on pole {from_pole}!'
-        assert (self.state[to_pole] == [] or
-                self.state[to_pole][-1] > ring), f'Cannot move to pole {to_pole} as ring {ring} is bigger!'
+        pass
 
         print(self.state)
         print(f'Move ring {ring} from {from_pole} to {to_pole}')
 
         # Move (change state)
-        self.state[from_pole].pop()
-        self.state[to_pole].append(ring)
+        pass
 
         # Animate move
         self.animate_move(ring, from_pole, to_pole, animate_now)
@@ -210,21 +202,14 @@ class Toab:
     def move_multiple_rings(self, biggest_ring, from_pole, to_pole):
         num_moves = 0
         # no move if same pole or ring is 0
-        if from_pole == to_pole or biggest_ring == 0:
-            return 0
+        pass
 
         rings = list(range(biggest_ring, 0, -1))
         # Check that from_pole has the rings
-        assert self.state[from_pole][-len(rings):] == rings, f'Pole {from_pole} does not contain rings {rings}!'
+        pass
         other_pole = find_other_pole(from_pole, to_pole)
         # Standard algorithm
-        if biggest_ring == 1:
-            return self.move_ring(biggest_ring, from_pole, to_pole)
-        else:
-            num_moves += self.move_multiple_rings(biggest_ring - 1, from_pole, other_pole)
-            num_moves += self.move_ring(biggest_ring, from_pole, to_pole)
-            num_moves += self.move_multiple_rings(biggest_ring - 1, other_pole, to_pole)
-            return num_moves
+        pass
 
     def solve_from_reset(self, target_pole):
         from_pole = find_pole_with(self.biggest_ring, self.state)
@@ -267,21 +252,8 @@ class Toab:
         # If from_pole = target_pole, the biggest ring is already correct. Solve the substate.
         # ElseIf biggest ring is 1, just move the ring and we're done.
         # Else, solve the substate, move biggest ring to target, create a new substate, solve the updated substate
-        new_state = {k: list(v) for k, v in state.items()}
-        new_state[from_pole].pop(0)
-        if from_pole == target_pole:
-            num_moves += self.solve_from_state(new_state, biggest_ring - 1, target_pole)
-        elif biggest_ring == 1:
-            num_moves += self.move_ring(biggest_ring, from_pole, target_pole, animate_now=False)
-            # self.wait_for_animation()
-        else:
-            num_moves += self.solve_from_state(new_state, biggest_ring - 1, other_pole)
-            num_moves += self.move_ring(biggest_ring, from_pole, target_pole, animate_now=False)
-            # self.wait_for_animation()
-            # new_state now doesn't match self.state!
-            new_state = {k: list(v) for k, v in self.state.items()}
-            new_state[target_pole].pop(0)
-            num_moves += self.solve_from_state(new_state, biggest_ring - 1, target_pole)
+        pass
+
         return num_moves
 
     def animate_move(self, ring, from_pole, to_pole, animate_now):
