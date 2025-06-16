@@ -1,19 +1,3 @@
-# Global variables
-POLES = ['A', 'B', 'C']
-POLESET = {'A', 'B', 'C'}
-
-# Global functions
-def find_other_pole(from_pole, to_pole):
-    return (POLESET - {from_pole, to_pole}).pop()
-
-
-def find_pole_with(ring, state):
-    for pole, rings in state.items():
-        if ring in rings:
-            return pole
-    raise ValueError(f'Ring {ring} not found!')
-
-
 # Plot settings
 import matplotlib
 
@@ -37,35 +21,50 @@ RING_COLOURS = ['darkgreen', 'orange', 'yellow', 'lime', 'blue', 'cyan', 'fuchsi
 INTERVAL = 200
 
 
-class Toab:
+# Global variables
+POLES = ['A', 'B', 'C']
+POLESET = {'A', 'B', 'C'}
+
+
+# Global functions
+def find_other_pole(from_pole, to_pole):
+    return (POLESET - {from_pole, to_pole}).pop()
+
+
+def find_pole_with(ring, state):
+    for pole, rings in state.items():
+        if ring in rings:
+            return pole
+    raise ValueError(f'Ring {ring} not found!')
+
+
+class TowersOfAhBoy:
+    biggest_ring = 1
+    state = {}
+    fig = None
+    ax = None
+    pole_centres = {}
+    ring_patches = {}
+    animation = None
+    animation_params = []
+    interval = INTERVAL
 
     def __init__(self, biggest_ring=1, start_pole='A', state=None):
-        self.biggest_ring = 0
-        self.state = {pole: [] for pole in POLES}
-        # State for animations
         self.fig, self.ax = plt.subplots(figsize=(10, 5))
-        self.pole_centres = {}
-        self.ring_patches = {}
-        self.animation = None
-        self.animation_params = []
-        self.interval = INTERVAL
         self.reset(biggest_ring, start_pole, state)
 
     def __repr__(self):
         return str(self.state)
 
     def reset(self, biggest_ring=1, start_pole='A', state=None):
-        # Remove all shapes in figure
         for patches in self.ring_patches.values():
             for patch in patches:
                 patch.remove()
         if state is None:
-            # Set biggest ring, set state to all rings on the start pole
             self.biggest_ring = biggest_ring
             rings = list(range(biggest_ring, 0, -1))
             self.state = {'A': [], 'B': [], 'C': [], start_pole: rings}
         else:
-            # Set biggest ring, set state
             self.biggest_ring = max(v for ring in state.values() for v in ring)
             self.state = state
         self.pole_centres = self.draw_poles()
@@ -177,13 +176,9 @@ class Toab:
     def show_state(self):
         plt.draw()
 
-    # returns 0 for no move or 1 for single move
     def move_ring(self, ring, from_pole, to_pole, animate_now=True):
-        # no move if same pole or ring is 0
         if from_pole == to_pole or ring == 0:
             return 0
-
-        # checks: anything on pole? Is the ring on top? Is to_pole empty / has bigger ring?
         assert self.state[from_pole], f'Nothing on pole {from_pole}!'
         assert self.state[from_pole][-1] == ring, f'Ring {ring} is not the top ring on pole {from_pole}!'
         assert (self.state[to_pole] == [] or
@@ -192,16 +187,13 @@ class Toab:
         print(self.state)
         print(f'Move ring {ring} from {from_pole} to {to_pole}')
 
-        # Move (change state)
         self.state[from_pole].pop()
         self.state[to_pole].append(ring)
 
-        # Animate move
         self.animate_move(ring, from_pole, to_pole, animate_now)
         return 1
 
     def check_state(self):
-        # Check for valid state: poles must be ABC and bigger rings must be below
         assert set(self.state.keys()) == {'A', 'B', 'C'}, 'Poles must be A,B,C only!'
         for pole, rings in self.state.items():
             for below, above in zip(rings[:-1], rings[1:]):
@@ -209,15 +201,11 @@ class Toab:
 
     def move_multiple_rings(self, biggest_ring, from_pole, to_pole):
         num_moves = 0
-        # no move if same pole or ring is 0
         if from_pole == to_pole or biggest_ring == 0:
             return 0
-
         rings = list(range(biggest_ring, 0, -1))
-        # Check that from_pole has the rings
         assert self.state[from_pole][-len(rings):] == rings, f'Pole {from_pole} does not contain rings {rings}!'
         other_pole = find_other_pole(from_pole, to_pole)
-        # Standard algorithm
         if biggest_ring == 1:
             return self.move_ring(biggest_ring, from_pole, to_pole)
         else:
@@ -230,7 +218,6 @@ class Toab:
         from_pole = find_pole_with(self.biggest_ring, self.state)
         return self.move_multiple_rings(self.biggest_ring, from_pole, target_pole)
 
-    # This can be considered the main method
     def solve_from_current(self, target_pole):
         self.animation_params = []
         num_moves = self.solve_from_state(self.state, self.biggest_ring, target_pole)
@@ -262,11 +249,6 @@ class Toab:
             return 0
         from_pole = find_pole_with(biggest_ring, state)
         other_pole = find_other_pole(from_pole, target_pole)
-        # The algorithm is like this:
-        # Create a new substate without biggest ring.
-        # If from_pole = target_pole, the biggest ring is already correct. Solve the substate.
-        # ElseIf biggest ring is 1, just move the ring and we're done.
-        # Else, solve the substate, move biggest ring to target, create a new substate, solve the updated substate
         new_state = {k: list(v) for k, v in state.items()}
         new_state[from_pole].pop(0)
         if from_pole == target_pole:

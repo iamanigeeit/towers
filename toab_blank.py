@@ -1,19 +1,3 @@
-# Global variables
-POLES = ['A', 'B', 'C']
-POLESET = {'A', 'B', 'C'}
-
-# Global functions
-def find_other_pole(from_pole, to_pole):
-    return (POLESET - {from_pole, to_pole}).pop()
-
-
-def find_pole_with(ring, state):
-    for pole, rings in state.items():
-        if ring in rings:
-            return pole
-    raise ValueError(f'Ring {ring} not found!')
-
-
 # Plot settings
 import matplotlib
 
@@ -37,7 +21,24 @@ RING_COLOURS = ['darkgreen', 'orange', 'yellow', 'lime', 'blue', 'cyan', 'fuchsi
 INTERVAL = 200
 
 
-class Toab:
+# Global variables
+POLES = ['A', 'B', 'C']
+POLESET = {'A', 'B', 'C'}
+
+
+# Global functions
+def find_other_pole(from_pole, to_pole):
+    return (POLESET - {from_pole, to_pole}).pop()
+
+
+def find_pole_with(ring, state):
+    for pole, rings in state.items():
+        if ring in rings:
+            return pole
+    raise ValueError(f'Ring {ring} not found!')
+
+
+class TowersOfAhBoy:
 
     def __init__(self, biggest_ring=1, start_pole='A', state=None):
         self.biggest_ring = 0
@@ -207,9 +208,12 @@ class Toab:
         rings = list(range(biggest_ring, 0, -1))
         # Check that from_pole has the rings
         pass
+
         other_pole = find_other_pole(from_pole, to_pole)
         # Standard algorithm
         pass
+        return num_moves
+
 
     def solve_from_reset(self, target_pole):
         from_pole = find_pole_with(self.biggest_ring, self.state)
