@@ -39,32 +39,35 @@ def find_pole_with(ring, state):
 
 
 class TowersOfAhBoy:
-    biggest_ring = 1
-    state = {}
-    fig = None
-    ax = None
-    pole_centres = {}
-    ring_patches = {}
-    animation = None
-    animation_params = []
-    interval = INTERVAL
 
     def __init__(self, biggest_ring=1, start_pole='A', state=None):
+        # State for towers
+        self.biggest_ring = 0
+        self.state = {pole: [] for pole in POLES}
+        # State for animations
         self.fig, self.ax = plt.subplots(figsize=(10, 5))
+        self.pole_centres = {}
+        self.ring_patches = {}
+        self.animation = None
+        self.animation_params = []
+        self.interval = INTERVAL
         self.reset(biggest_ring, start_pole, state)
 
     def __repr__(self):
         return str(self.state)
 
     def reset(self, biggest_ring=1, start_pole='A', state=None):
+        # Remove all shapes in figure
         for patches in self.ring_patches.values():
             for patch in patches:
                 patch.remove()
         if state is None:
+            # Set biggest ring, set state to all rings on the start pole
             self.biggest_ring = biggest_ring
             rings = list(range(biggest_ring, 0, -1))
             self.state = {'A': [], 'B': [], 'C': [], start_pole: rings}
         else:
+            # Set biggest ring, set state
             self.biggest_ring = max(v for ring in state.values() for v in ring)
             self.state = state
         self.pole_centres = self.draw_poles()
@@ -177,8 +180,11 @@ class TowersOfAhBoy:
         plt.draw()
 
     def move_ring(self, ring, from_pole, to_pole, animate_now=True):
+        # no move if same pole or ring is 0
         if from_pole == to_pole or ring == 0:
             return 0
+
+        # checks: anything on pole? Is the ring on top? Is to_pole empty / has bigger ring?
         assert self.state[from_pole], f'Nothing on pole {from_pole}!'
         assert self.state[from_pole][-1] == ring, f'Ring {ring} is not the top ring on pole {from_pole}!'
         assert (self.state[to_pole] == [] or
@@ -187,9 +193,11 @@ class TowersOfAhBoy:
         print(self.state)
         print(f'Move ring {ring} from {from_pole} to {to_pole}')
 
+        # Move (change state)
         self.state[from_pole].pop()
         self.state[to_pole].append(ring)
 
+        # Animate move
         self.animate_move(ring, from_pole, to_pole, animate_now)
         return 1
 
@@ -201,14 +209,18 @@ class TowersOfAhBoy:
 
     def move_multiple_rings(self, biggest_ring, from_pole, to_pole):
         num_moves = 0
+        # no move if same pole or ring is 0
         if from_pole == to_pole or biggest_ring == 0:
             return 0
+        # Check that from_pole has the rings
+        # The last n rings on from_pole must be n, n-1, n-2 ...
         rings = list(range(biggest_ring, 0, -1))
-        assert self.state[from_pole][-len(rings):] == rings, f'Pole {from_pole} does not contain rings {rings}!'
+        assert self.state[from_pole][-biggest_ring:] == rings, f'Pole {from_pole} does not contain rings {rings}!'
         other_pole = find_other_pole(from_pole, to_pole)
         if biggest_ring == 1:
             return self.move_ring(biggest_ring, from_pole, to_pole)
         else:
+            # Standard algorithm
             num_moves += self.move_multiple_rings(biggest_ring - 1, from_pole, other_pole)
             num_moves += self.move_ring(biggest_ring, from_pole, to_pole)
             num_moves += self.move_multiple_rings(biggest_ring - 1, other_pole, to_pole)
@@ -249,8 +261,14 @@ class TowersOfAhBoy:
             return 0
         from_pole = find_pole_with(biggest_ring, state)
         other_pole = find_other_pole(from_pole, target_pole)
-        new_state = {k: list(v) for k, v in state.items()}
-        new_state[from_pole].pop(0)
+        # The algorithm is like this:
+        # Create a new substate without biggest ring.
+        # If from_pole = target_pole, the biggest ring is already correct. Solve the substate.
+        # ElseIf biggest ring is 1, just move the ring and we're done.
+        # Else, solve the substate, move biggest ring to target, create a new substate, solve the updated substate
+
+        new_state = {pole: rings for pole, rings in state.items()}
+        new_state[from_pole].pop(0)  # remove biggest ring from new_state
         if from_pole == target_pole:
             num_moves += self.solve_from_state(new_state, biggest_ring - 1, target_pole)
         elif biggest_ring == 1:
@@ -261,7 +279,7 @@ class TowersOfAhBoy:
             num_moves += self.move_ring(biggest_ring, from_pole, target_pole, animate_now=False)
             # self.wait_for_animation()
             # new_state now doesn't match self.state!
-            new_state = {k: list(v) for k, v in self.state.items()}
+            new_state = {pole: rings for pole, rings in self.state.items()}
             new_state[target_pole].pop(0)
             num_moves += self.solve_from_state(new_state, biggest_ring - 1, target_pole)
         return num_moves

@@ -181,13 +181,16 @@ class TowersOfAhBoy:
         pass
 
         # checks: anything on pole? Is the ring on top? Is to_pole empty / has bigger ring?
-        pass
+        assert self.state[from_pole][-1] == ring  # ring must be on top of from_pole
+        # Either to_pole is empty or top ring on to_pole is bigger
+        assert self.state[to_pole] == [] or self.state[to_pole][-1] > ring
 
         print(self.state)
         print(f'Move ring {ring} from {from_pole} to {to_pole}')
 
         # Move (change state)
-        pass
+        ring = self.state[from_pole].pop()
+        self.state[to_pole].append(ring)
 
         # Animate move
         self.animate_move(ring, from_pole, to_pole, animate_now)
@@ -203,17 +206,20 @@ class TowersOfAhBoy:
     def move_multiple_rings(self, biggest_ring, from_pole, to_pole):
         num_moves = 0
         # no move if same pole or ring is 0
-        pass
+        if from_pole == to_pole or biggest_ring == 0:
+            return 0
 
         rings = list(range(biggest_ring, 0, -1))
         # Check that from_pole has the rings
-        pass
+        # The last n rings on from_pole must be n, n-1, n-2 ...
+        assert self.state[from_pole][-biggest_ring:] == rings
 
         other_pole = find_other_pole(from_pole, to_pole)
         # Standard algorithm
-        pass
+        num_moves += self.move_multiple_rings(biggest_ring-1, from_pole, other_pole)
+        num_moves += self.move_ring(biggest_ring, from_pole, to_pole)
+        num_moves += self.move_multiple_rings(biggest_ring-1, other_pole, to_pole)
         return num_moves
-
 
     def solve_from_reset(self, target_pole):
         from_pole = find_pole_with(self.biggest_ring, self.state)
